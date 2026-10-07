@@ -1,3 +1,5 @@
+![Focus — hábitos, tiempo y progreso](docs/focus-cover.svg)
+
 # Focus
 
 **Organiza tus hábitos, registra tus horas y empieza cada día desde cero.** Focus es una aplicación de escritorio para Windows 11, con almacenamiento local y una interfaz minimalista de cristal en tonos cálidos. No requiere cuenta ni conexión a Internet para el uso diario.

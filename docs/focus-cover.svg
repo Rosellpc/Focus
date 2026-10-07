@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="title desc">
+  <title id="title">Focus — hábitos, tiempo y progreso</title>
+  <desc id="desc">Portada de Focus para Windows 11, con tonos cálidos, paneles de cristal y un indicador circular de progreso.</desc>
+  <defs>
+    <linearGradient id="back" x2="1" y2="1"><stop stop-color="#8b8070"/><stop offset=".55" stop-color="#62594e"/><stop offset="1" stop-color="#30312c"/></linearGradient>
+    <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#ffffff" stop-opacity=".16"/><stop offset="1" stop-color="#ffffff" stop-opacity=".03"/></linearGradient>
+    <linearGradient id="tile" x2="1" y2="1"><stop stop-color="#c6bbae" stop-opacity=".3"/><stop offset="1" stop-color="#24231f" stop-opacity=".28"/></linearGradient>
+  </defs>
+  <rect width="1280" height="420" rx="24" fill="url(#back)"/>
+  <path d="M990 0v420M1140 0v420" stroke="#171a18" stroke-opacity=".2" stroke-width="4"/>
+  <rect x="28" y="28" width="1224" height="364" rx="28" fill="url(#glass)" stroke="#ffffff" stroke-opacity=".23"/>
+  <g font-family="Segoe UI,Arial,sans-serif" fill="#faf7f2">
+    <rect x="72" y="77" width="46" height="46" rx="14" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/>
+    <circle cx="95" cy="100" r="14" fill="none" stroke="#b0deeb" stroke-width="2"/>
+    <path d="m88 100 5 5 10-12" fill="none" stroke="#faf7f2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="133" y="105" font-size="12" letter-spacing="2" fill="#ebe4da">TU ESPACIO PERSONAL</text>
+    <text x="70" y="219" font-size="82" font-weight="400" letter-spacing="-4">Focus<tspan fill="#a5dcef">.</tspan></text>
+    <text x="75" y="265" font-size="25" font-weight="300">Menos ruido. Más enfoque.</text>
+    <text x="75" y="309" font-size="14" fill="#ece4d9">Hábitos · Tiempo · Progreso</text>
+    <rect x="75" y="336" width="155" height="25" rx="12" fill="#ffffff" fill-opacity=".12"/>
+    <text x="91" y="353" font-size="10" letter-spacing="1.2">PARA WINDOWS 11</text>
+  </g>
+  <g transform="translate(720 76)">
+    <rect width="452" height="268" rx="23" fill="url(#tile)" stroke="#ffffff" stroke-opacity=".15"/>
+    <path d="M22 49h408" stroke="#ffffff" stroke-opacity=".12"/>
+    <g fill="#e9e1d5" opacity=".85"><rect x="24" y="24" width="62" height="5" rx="2"/><rect x="329" y="24" width="98" height="5" rx="2"/></g>
+    <circle cx="326" cy="147" r="57" fill="none" stroke="#ffffff" stroke-opacity=".15" stroke-width="5"/>
+    <circle cx="326" cy="147" r="57" fill="none" stroke="#a5dcef" stroke-width="5" stroke-dasharray="248 358" stroke-linecap="round" transform="rotate(-90 326 147)"/>
+    <path d="m307 146 14 14 27-32" fill="none" stroke="#f7f0e5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="url(#glass)" stroke="#ffffff" stroke-opacity=".15"><rect x="22" y="69" width="204" height="49" rx="12"/><rect x="22" y="129" width="204" height="49" rx="12"/><rect x="22" y="189" width="204" height="49" rx="12"/></g>
+    <g stroke="#f4ede3" stroke-width="1.5" fill="none"><rect x="37" y="85" width="15" height="15" rx="4"/><rect x="37" y="145" width="15" height="15" rx="4"/><rect x="37" y="205" width="15" height="15" rx="4"/><path d="m40 153 3 3 6-7" stroke="#a5dcef"/></g>
+    <g fill="#eee5d8" opacity=".7"><rect x="66" y="85" width="102" height="4" rx="2"/><rect x="66" y="96" width="63" height="3" rx="1"/><rect x="66" y="145" width="86" height="4" rx="2"/><rect x="66" y="156" width="72" height="3" rx="1"/><rect x="66" y="205" width="108" height="4" rx="2"/><rect x="66" y="216" width="51" height="3" rx="1"/></g>
+    <circle cx="280" cy="230" r="3" fill="#a5dcef"/><rect x="292" y="228" width="75" height="4" rx="2" fill="#eee5d8" opacity=".7"/>
+  </g>
+</svg>
