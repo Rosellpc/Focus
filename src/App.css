@@ -1,19 +1,662 @@
 ﻿@import "tailwindcss";
 
+@theme {
+  --color-slate-900: #35322f;
+  --color-slate-950: #282522;
+  --color-slate-400: #c1b9b0;
+  --color-slate-300: #ded8d0;
+  --color-slate-100: #faf7f2;
+}
 @layer base {
   :root {
     color-scheme: dark;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-synthesis: none;
   }
-
   body {
     margin: 0;
-    background-color: #0A0D14;
-    color: #F3F4F6;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #2d2925;
+    color: #faf7f2;
     min-height: 100vh;
   }
-
-  button:not(:disabled) {
+  button:not(:disabled),
+  summary {
     cursor: pointer;
+  }
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid #9dd7ef;
+    outline-offset: 4px;
+  }
+}
+.focus-app {
+  min-height: 100vh;
+  padding: 38px 32px;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 22% 0%, #a2988966, transparent 48%),
+    radial-gradient(ellipse at 83% 15%, #d1bd9760, transparent 40%),
+    linear-gradient(125deg, #45413c, #6e6255 46%, #96815c);
+}
+.focus-app::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 72%,
+      #171b1955 72.4%,
+      transparent 73%,
+      transparent 89%,
+      #151a1850 89.4%,
+      transparent 90%
+    ),
+    linear-gradient(155deg, transparent 33%, #f8e5ce28 90.2%, #d3b19866 95%),
+    radial-gradient(ellipse at 5% 100%, #d1af9abd 0%, transparent 47%);
+}
+.focus-shell {
+  max-width: 1160px;
+  margin: auto;
+  padding: 30px;
+  border: 1px solid #ffffff2b;
+  border-radius: 30px;
+  background: linear-gradient(120deg, #b8afa361, #8e857a3d 40%, #514d466b);
+  box-shadow:
+    0 30px 90px #100f0c40,
+    inset 0 1px 0 #ffffff20;
+  backdrop-filter: blur(30px);
+}
+.focus-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 3px 25px;
+  border-bottom: 1px solid #ffffff16;
+}
+.focus-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-mark,
+.habit-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  background: #ffffff13;
+  border: 1px solid #ffffff1c;
+  border-radius: 14px;
+}
+.focus-brand h1 {
+  font-size: 27px;
+  font-weight: 500;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+}
+.brand-dot {
+  color: #9dd7ef;
+}
+.focus-brand p,
+.header-clock p {
+  font-size: 10px;
+  color: #ded8d0;
+  margin-top: 6px;
+}
+.view-switch {
+  display: flex;
+  background: #221f1c26;
+  border-radius: 14px;
+  padding: 4px;
+  border: 1px solid #ffffff10;
+}
+.view-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  color: #e2dbd3;
+  font-size: 11px;
+  transition: background 0.2s;
+}
+.view-tab.is-active {
+  color: #fff;
+  background: #ffffff20;
+  box-shadow:
+    0 2px 8px #00000010,
+    inset 0 1px 0 #ffffff15;
+}
+.view-tab:hover {
+  background: #ffffff14;
+}
+.header-clock {
+  text-align: right;
+}
+.header-clock time {
+  font-size: 23px;
+  font-weight: 300;
+  letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums;
+}
+.action-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 18px 0;
+}
+.quiet-button {
+  border: 1px solid #ffffff1c;
+  border-radius: 10px;
+  background: #ffffff0a;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #ece5dc;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.quiet-button:hover {
+  background: #ffffff16;
+  border-color: #ffffff35;
+}
+.action-toolbar .quiet-button:first-child {
+  background: #e7e0d6;
+  color: #38332e;
+  border-color: #e7e0d6;
+}
+.focus-input {
+  width: 100%;
+  background: #27231f55;
+  border: 1px solid #ffffff24;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #faf7f2;
+}
+.focus-input option {
+  background: #38332e;
+}
+.date-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: #ded8d0;
+  font-size: 11px;
+}
+.date-toolbar .focus-input {
+  width: auto;
+}
+.glass-panel {
+  border: 1px solid #ffffff1a;
+  background: linear-gradient( #ffffff16, #f3e7db40);
+  border-radius: 21px;
+  box-shadow: inset 0 1px 0 #ffffff0d;
+}
+.daily-overview {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 15px;
+}
+.overview-main {
+  padding: 28px 30px;
+  background: linear-gradient(110deg, #c3b9ab42, #a3998b1a);
+}
+.eyebrow {
+  color: #e0d9d0;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.eyebrow > svg:last-child {
+  margin-left: auto;
+}
+.live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 100%;
+  background: #a5dcef;
+  display: inline-block;
+}
+.overview-main h2 {
+  margin: 21px 0 10px;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 300;
+  line-height: 1.17;
+  letter-spacing: -1.3px;
+}
+.overview-main h2 span {
+  color: #f8f2e7;
+}
+.overview-copy {
+  color: #ded8d0;
+  font-size: 11px;
+}
+.overview-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 25px;
+  padding-top: 17px;
+  border-top: 1px solid #ffffff22;
+}
+.overview-stats > div + div {
+  padding-left: 20px;
+  border-left: 1px solid #ffffff22;
+}
+.overview-stats span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e0d9d0;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.overview-stats strong {
+  display: block;
+  font-size: 29px;
+  font-weight: 300;
+  margin-top: 5px;
+}
+.overview-stats small {
+  font-size: 14px;
+  color: #e0d9d0;
+}
+.overview-total {
+  font-size: 10px;
+  color: #ded8d0;
+  margin-top: 14px;
+}
+.overview-ring {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(150deg, #3b37305c, #322f2847);
+}
+.progress-dial {
+  width: 184px;
+  height: 184px;
+  margin: 15px 0;
+  position: relative;
+}
+.progress-dial svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.progress-dial circle {
+  fill: none;
+  stroke-width: 5;
+}
+.dial-track {
+  stroke: #ffffff1c;
+}
+.dial-fill {
+  stroke: #9dd7ef;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s;
+}
+.progress-dial > div {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.progress-dial strong {
+  font-size: 47px;
+  font-weight: 300;
+  letter-spacing: -2px;
+}
+.progress-dial strong span {
+  font-size: 19px;
+  margin-left: 3px;
+}
+.progress-dial p,
+.ring-caption {
+  color: #ded8d0;
+  font-size: 10px;
+}
+.ring-caption {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.section-label {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+.section-label h2 {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.3px;
+}
+.section-label span {
+  font-size: 10px;
+  color: #ded8d0;
+}
+.habit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.task-unit {
+  overflow: hidden;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.task-unit:hover {
+  border-color: #ffffff38;
+  background: linear-gradient(135deg, #ffffff20, #211d1940);
+}
+.habit-card {
+  padding: 20px 20px 16px;
+}
+.habit-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 26px;
+}
+.habit-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+.habit-percentage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #e3dbd1;
+}
+.habit-label {
+  font-size: 8px;
+  letter-spacing: 1.1px;
+  color: #c9c0b6;
+}
+.habit-card h2 {
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+}
+.habit-time {
+  font-size: 10px;
+  color: #ded8d0;
+  margin-top: 7px;
+}
+.habit-track {
+  height: 3px;
+  background: #ffffff16;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 18px 0;
+}
+.habit-track > div {
+  height: 100%;
+  background: #c8e5ec;
+  border-radius: inherit;
+  transition: width 0.3s;
+}
+.habit-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.minute-controls {
+  display: flex;
+  gap: 4px;
+}
+.minute-controls button {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid #ffffff14;
+  border-radius: 7px;
+  padding: 5px 7px;
+  font-size: 10px;
+}
+.complete-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #e5e0d51a;
+  border: 1px solid #ffffff1e;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+.minute-controls button:hover,
+.complete-button:hover {
+  background: #ffffff20;
+}
+.task-actions {
+  padding: 10px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  border-top: 1px solid #ffffff0f;
+}
+.task-actions .quiet-button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 9px;
+  color: #d8cfc3;
+}
+.task-actions .quiet-button:hover {
+  color: #fff;
+}
+.monthly-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.metric {
+  padding: 22px;
+}
+.metric-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0d9d0;
+  font-size: 10px;
+}
+.metric strong {
+  display: block;
+  font-size: 34px;
+  font-weight: 300;
+  margin: 15px 0 7px;
+  letter-spacing: -1px;
+}
+.metric strong small {
+  font-size: 18px;
+  margin-left: 3px;
+}
+.metric p {
+  color: #ded8d0;
+  font-size: 10px;
+}
+.metric strong.metric-title {
+  font-size: 25px;
+  overflow-wrap: anywhere;
+}
+.focus-shell details {
+  border: 1px solid #ffffff1a;
+  background: #ffffff20;
+  font-size: 11px;
+}
+.focus-shell summary {
+  font-size: 11px;
+  color: #e0d9d0;
+}
+.focus-shell
+  :is(
+    .text-blue-300,
+    .text-emerald-300,
+    .text-emerald-400,
+    .text-purple-300,
+    .text-blue-400
+  ) {
+  color: #c5e3ed;
+}
+.focus-shell
+  :is(
+    .bg-blue-500,
+    .bg-amber-500,
+    .bg-purple-500,
+    .bg-emerald-500,
+    .bg-rose-500
+  ) {
+  background-color: #a5d3e2;
+}
+@media (min-width: 1450px) {
+  .focus-app {
+    padding-top: 65px;
+  }
+}
+@media (max-width: 850px) {
+  .focus-app {
+    padding: 22px 18px;
+  }
+  .focus-shell {
+    padding: 24px;
+  }
+  .habit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .header-clock {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .focus-app {
+    padding: 12px;
+  }
+  .focus-shell {
+    padding: 18px;
+    border-radius: 23px;
+  }
+  .focus-header {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .view-switch {
+    width: 100%;
+  }
+  .view-tab {
+    flex: 1;
+    justify-content: center;
+  }
+  .daily-overview {
+    grid-template-columns: 1fr;
+  }
+  .overview-main {
+    padding: 24px;
+  }
+  .overview-ring {
+    padding: 20px;
+  }
+  .progress-dial {
+    width: 148px;
+    height: 148px;
+    margin: 10px 0;
+  }
+  .habit-grid,
+  .monthly-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
+}
+
+.focus-shell {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 26px;
+}
+.focus-content {
+  min-width: 0;
+}
+.focus-rail {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 13px;
+  border-right: 1px solid #ffffff16;
+  padding-right: 12px;
+}
+.rail-brand {
+  padding: 6px 0 25px;
+  color: #f2e9df;
+}
+.rail-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  color: #d8cfc3;
+  transition: background 0.2s;
+}
+.rail-button:hover,
+.rail-button.is-active {
+  background: #ffffff22;
+  color: #fff;
+}
+.rail-line {
+  width: 16px;
+  height: 1px;
+  background: #ffffff25;
+  margin-top: 9px;
+}
+@media (max-width: 850px) {
+  .focus-shell {
+    gap: 18px;
+  }
+}
+@media (max-width: 600px) {
+  .focus-shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .focus-rail {
+    display: none;
   }
 }
