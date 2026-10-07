@@ -1,51 +1,105 @@
-# Focus para Windows 11
+# Focus
 
-Aplicación local de hábitos, registro de minutos y reportes mensuales. Funciona sin cuenta ni conexión a Internet después de instalarla.
+**Organiza tus hábitos, registra tus horas y empieza cada día desde cero.** Focus es una aplicación de escritorio para Windows 11, con almacenamiento local y una interfaz minimalista de cristal en tonos cálidos. No requiere cuenta ni conexión a Internet para el uso diario.
 
-## Diseño
+[Descargar Focus v0.1.0 para Windows](https://github.com/Rosellpc/Focus/releases/download/v0.1.0/Focus_0.1.0_x64-setup.exe) · [Ver releases](https://github.com/Rosellpc/Focus/releases) · [Notas de v0.1.0](docs/releases/v0.1.0.md)
 
-Interfaz de cristal translúcido en tonos cálidos, con navegación lateral, tarjetas minimalistas e indicador circular de progreso. El diseño se adapta al ancho de la ventana y respeta la preferencia de movimiento reducido.
+![Interfaz de Focus con datos de prueba](docs/design-preview.png)
 
-[Vista previa del escritorio con datos de prueba](docs/design-preview.png).
+## Instalación en Windows 11
 
-## Instalar
+1. Descarga `Focus_0.1.0_x64-setup.exe` desde el [release v0.1.0](https://github.com/Rosellpc/Focus/releases/tag/v0.1.0).
+2. Ejecuta el instalador y sigue el asistente: **Siguiente → Instalar → Finalizar**.
+3. Abre **Inicio**, busca **Focus** y ejecútalo. También puedes crear un acceso directo en el escritorio desde la ubicación del acceso directo en Inicio.
 
-El instalador se genera en `src-tauri/target/release/bundle/nsis/Focus_0.1.0_x64-setup.exe`. Ejecútalo y abre Focus desde el menú Inicio. El instalador es para el usuario actual. WebView2 es necesario; el instalador de Tauri puede instalarlo si falta. El instalador no lleva una firma comercial.
+El instalador es para Windows **x64** y el usuario actual. No necesitas Node, Rust ni una terminal para usar la aplicación instalada. Focus utiliza Microsoft Edge WebView2; si falta, el instalador puede descargarlo, por lo que ese paso requiere Internet. El instalador no está firmado digitalmente.
 
-## Uso
+El release incluye `SHA256SUMS.txt` para comprobar el archivo descargado. Desde PowerShell, en la carpeta de descargas:
 
-- **Fecha del registro** permite consultar y corregir días anteriores. La fecha usa la hora local de Windows y cambia automáticamente a medianoche o al volver de suspensión.
-- **30m**, **1h**, **−30m** y **Editar minutos** guardan registros reales. Se permiten minutos por encima de la meta, hasta 1440 por hábito y día. El progreso visual se limita al ancho de la barra; el porcentaje refleja todo el tiempo registrado.
-- **Tarea completada** registra como mínimo las horas de la meta diaria sin duplicar el tiempo ya registrado. Oculta la card solo para esa fecha, conserva sus horas en el contador y en los reportes, y persiste al reiniciar. Al día siguiente vuelve a aparecer desde cero. **Tareas completadas** permite volver a mostrarla para corregir un registro.
-- **Nuevo hábito** y **Editar hábito** permiten nombre, color y meta en minutos. Las metas cambian desde hoy y conservan el historial de días anteriores. Los cambios de nombre y color sí se reflejan en los reportes históricos.
-- **Administrar hábitos** permite archivar y reactivar sin borrar registros. Se conserva el historial de los períodos activos. Archivar excluye la meta desde hoy; los minutos anteriores siguen presentes en los reportes.
-- **Reporte mensual** suma los minutos exactos, calcula la categoría con mayor cumplimiento y compara con el mes anterior. La meta incluye el mes completo y respeta metas y períodos activos. No hay datos simulados.
-- **Temporizador** conserva su fecha de inicio, duración y hora de finalización al cerrar/reabrir. **Guardar sesión** confirma los minutos; **Terminar y guardar** registra los minutos completos transcurridos. Las notificaciones llegan cuando Focus está ejecutándose, incluida la bandeja.
-- **Iniciar con Windows** y **Notificar al terminar** son opciones voluntarias. Configura el inicio automático desde la versión instalada para registrar su ubicación definitiva.
-- **Ocultar en la bandeja** mantiene la aplicación funcionando. El menú de la bandeja permite abrir, ocultar y salir. Cerrar la ventana termina la aplicación. Una segunda apertura activa la ventana existente.
+```powershell
+Get-FileHash .\Focus_0.1.0_x64-setup.exe -Algorithm SHA256
+```
 
-## Datos y respaldos
+Compara el resultado con el checksum publicado.
 
-Se conserva el identificador `com.focus.app` y el archivo `dailyfocus.db` para migrar automáticamente la base anterior. La base está en la carpeta de configuración de usuario de Tauri, normalmente `%APPDATA%/com.focus.app/` en Windows.
+## Qué puedes hacer
 
-**Crear respaldo** guarda un JSON completo en la subcarpeta `backups`. **Mostrar respaldo** abre su ubicación en el Explorador. Copia los respaldos a otra unidad para protegerte ante fallos del disco. **Restaurar respaldo** valida el archivo, solicita confirmación, crea una copia de los datos actuales y reemplaza hábitos, registros, metas y períodos activos dentro de una transacción. Si falla, se conserva la base anterior.
+- **Crear y editar hábitos:** define el nombre y la meta diaria en minutos. Las metas nuevas se aplican desde el día de la edición y conservan el historial anterior.
+- **Registrar tiempo:** suma 30 minutos o una hora, resta 30 minutos o edita el total. Se permiten minutos por encima de la meta, hasta 1440 por hábito y día.
+- **Completar una tarea:** el botón **Tarea completada** registra como mínimo las horas de su meta, sin duplicar el tiempo ya registrado. La card desaparece para esa fecha; sus horas siguen contando en el progreso y los reportes. Al día siguiente reaparece con cero minutos.
+- **Recuperar una tarea completada:** abre **Tareas completadas → Volver a mostrar**. Las horas se conservan para que puedas corregirlas.
+- **Consultar días anteriores:** cambia **Fecha del registro** para revisar o corregir el historial. La app utiliza la fecha local de Windows y actualiza el día al llegar la medianoche o volver de suspensión.
+- **Consultar reportes mensuales:** revisa horas acumuladas, porcentaje de cumplimiento, mejor categoría y comparación con el mes anterior. Las metas corresponden al mes completo y respetan el historial de metas y períodos activos.
+- **Archivar y reactivar hábitos:** conserva sus registros y los períodos en que estuvieron activos. Archivar excluye la meta desde ese día; los minutos registrados siguen en los reportes.
+- **Usar el temporizador:** selecciona un hábito y una duración. **Guardar sesión** confirma los minutos; **Terminar y guardar** registra los minutos completos transcurridos. La sesión conserva su fecha de inicio y hora de finalización si cierras o suspendes el equipo.
 
-Las migraciones SQLite están versionadas y son transaccionales. El acceso a SQLite se realiza desde comandos Rust con validación, consultas parametrizadas y una conexión serializada. La interfaz muestra errores y solo actualiza los datos después de confirmar el guardado.
+La interfaz adapta sus paneles al ancho de la ventana y respeta la preferencia de movimiento reducido. Los cambios de nombre y color también se reflejan en reportes anteriores.
 
-## Desarrollo y validación
+## Opciones de escritorio
 
-Requisitos: Node/pnpm, Rust estable MSVC en el PATH, Visual Studio con herramientas C++ y Windows SDK, Microsoft Edge WebView2.
+Abre **Temporizador y opciones de escritorio**, o su acceso en la navegación lateral:
+
+- **Iniciar con Windows:** activa esta opción desde la versión instalada para registrar su ubicación definitiva.
+- **Notificar al terminar:** habilita las notificaciones de sesiones. Se muestran mientras Focus está ejecutándose, incluso si lo ocultaste en la bandeja.
+- **Ocultar en la bandeja:** mantiene la app funcionando. Su icono permite abrir, ocultar o salir de Focus.
+
+Cerrar la ventana termina la aplicación. Abrir Focus por segunda vez activa la ventana existente.
+
+## Datos, respaldos y actualización
+
+Los hábitos, minutos, tareas completadas y metas se guardan en SQLite, en `dailyfocus.db`, dentro de la carpeta de configuración de la app: normalmente `%APPDATA%\com.focus.app\` en Windows.
+
+**Crear respaldo** guarda un JSON completo en la subcarpeta `backups`. **Mostrar respaldo** abre su ubicación en el Explorador. Copia ese archivo a otra unidad para protegerte ante un fallo del disco.
+
+**Restaurar respaldo** valida el archivo y pide confirmación. Antes de reemplazar los datos, guarda una copia de los registros actuales. La restauración se ejecuta en una transacción: si falla, la base anterior se conserva. Los respaldos contienen información personal de tus hábitos; no los subas al repositorio.
+
+Para actualizar Focus:
+
+1. Crea un respaldo.
+2. Cierra la app.
+3. Ejecuta el instalador de la versión nueva y abre Focus otra vez.
+
+Se conserva el identificador `com.focus.app` para mantener la ubicación de los datos. Las migraciones de SQLite son versionadas y transaccionales. La interfaz muestra los errores de guardado y confirma las operaciones antes de reflejarlas en el contador.
+
+## Desarrollo
+
+Stack: **Tauri 2 · React 19 · TypeScript · Tailwind CSS 4 · SQLite/SQLx**.
+
+Requisitos de compilación en Windows:
+
+- Node.js 22.12 o superior dentro de la rama 22, o una versión superior compatible con Vite, y pnpm.
+- Rust estable con el toolchain MSVC y Cargo disponible en el `PATH`.
+- Visual Studio con herramientas C++ de escritorio y Windows SDK.
+- Microsoft Edge WebView2. Las pruebas de interfaz utilizan Microsoft Edge.
 
 ```bash
-pnpm install
+git clone https://github.com/Rosellpc/Focus.git
+cd Focus
+pnpm install --frozen-lockfile
 pnpm tauri dev
+```
+
+Validación:
+
+```bash
 pnpm build
 pnpm test
 pnpm test:ui
 cargo test --manifest-path src-tauri/Cargo.toml --lib
+```
+
+Las pruebas de interfaz simulan los comandos Tauri. Las pruebas Rust utilizan SQLite real en bases aisladas para verificar migraciones, guardados simultáneos, tareas completadas, restauración y persistencia después de reabrir.
+
+Crear el instalador:
+
+```bash
 pnpm tauri build
 ```
 
-En PowerShell, si la política de scripts bloquea `pnpm.ps1`, usa `pnpm.cmd`. No hace falta cambiar la política del sistema. Las pruebas de interfaz usan Microsoft Edge y simulan los comandos Tauri; las pruebas Rust usan SQLite real en bases aisladas para verificar migración, concurrencia, rollback y persistencia tras reabrir.
+El archivo se genera en `src-tauri/target/release/bundle/nsis/`. En PowerShell, si la política de scripts bloquea `pnpm.ps1`, usa `pnpm.cmd`.
 
-El icono original está en `public/focus.svg`; se regenera con `pnpm tauri icon public/focus.svg`.
+El icono original está en `public/focus.svg`; se regenera con:
+
+```bash
+pnpm tauri icon public/focus.svg
+```
