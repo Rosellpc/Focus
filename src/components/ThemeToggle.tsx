@@ -25,7 +25,7 @@ export function ThemeToggle() {
       ) : (
         <Moon size={16} strokeWidth={1.7} />
       )}
-      <span>{light ? "Claro" : "Oscuro"}</span>
+      <span>{light ? "White" : "Beige"}</span>
     </button>
   );
 }
