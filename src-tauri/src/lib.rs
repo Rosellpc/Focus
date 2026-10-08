@@ -5,6 +5,27 @@ use tauri::{
     Manager,
 };
 
+#[tauri::command]
+fn notify_timer_finished(app: tauri::AppHandle, show_notification: bool) -> Result<(), String> {
+    // Play the Windows system chime even if toast notifications are blocked.
+    #[cfg(target_os = "windows")]
+    {
+        #[link(name = "user32")]
+        extern "system" { fn MessageBeep(kind: u32) -> i32; }
+        if unsafe { MessageBeep(0x40) } == 0 {
+            return Err("Windows no pudo reproducir el sonido del aviso.".into());
+        }
+    }
+    if show_notification {
+        use tauri_plugin_notification::NotificationExt;
+        app.notification().builder()
+            .title("Focus ? Sesión terminada")
+            .body("Tu tiempo de enfoque terminó. Abre Focus para guardar los minutos.")
+            .show().map_err(|err| err.to_string())?;
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -48,6 +69,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            notify_timer_finished,
             storage::snapshot,
             storage::save_minutes,
             storage::complete_habit,

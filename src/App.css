@@ -1111,3 +1111,21 @@
     transition: none;
   }
 }
+
+.notification-test {
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #ffffff22;
+  background: #ffffff0d;
+  color: #b9e4ed;
+}
+.neo-completion {
+  padding: 12px;
+  border-radius: 12px;
+  background: #9dd7ef18;
+  color: #faf7f2;
+  text-align: center;
+}

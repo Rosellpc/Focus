@@ -27,6 +27,8 @@ test.beforeEach(async ({ page }) => {
     let failNext = false;
     let failSnapshot = false;
     let auto = false;
+    (window as any).completionAlerts = [];
+    (window as any).notificationPermission = true;
     (window as any).failNextSnapshot = () => {
       failSnapshot = true;
     };
@@ -140,7 +142,13 @@ test.beforeEach(async ({ page }) => {
           return;
         }
         if (command === "plugin:notification|is_permission_granted")
-          return true;
+          return (window as any).notificationPermission;
+        if (command === "plugin:notification|request_permission")
+          return "denied";
+        if (command === "notify_timer_finished") {
+          (window as any).completionAlerts.push(args);
+          return;
+        }
         return;
       },
     };
@@ -399,4 +407,64 @@ test("panel neumórfico: duración, opciones y sesión", async ({ page }) => {
   await page
     .locator(".studio-body")
     .screenshot({ path: "test-results/timer-studio-compact.png" });
+});
+
+test("fin del temporizador: aviso único, sonido y prueba manual", async ({
+  page,
+}) => {
+  await expect(
+    page.getByLabel("Notificar al terminar", { exact: true }),
+  ).toBeChecked();
+  await page.getByRole("button", { name: "Probar aviso y sonido" }).click();
+  await expect
+    .poll(() => page.evaluate(() => (window as any).completionAlerts.length))
+    .toBe(1);
+  await page.getByLabel("Minutos", { exact: true }).fill("1");
+  await page.getByRole("button", { name: "Iniciar", exact: true }).click();
+  await page.clock.runFor(61000);
+  await expect(
+    page.getByText("Sesión terminada. Guarda tus minutos cuando estás listo."),
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => (window as any).completionAlerts.length))
+    .toBe(2);
+  await page.clock.runFor(5000);
+  expect(
+    await page.evaluate(() => (window as any).completionAlerts.length),
+  ).toBe(2);
+  await page.reload();
+  await expect(page.getByRole("timer")).toHaveText("0:00");
+  expect(
+    await page.evaluate(() => (window as any).completionAlerts.length),
+  ).toBe(0);
+});
+
+test("permiso denegado conserva el sonido y explica cómo activar mensajes", async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    (window as any).notificationPermission = false;
+  });
+  await page.getByRole("button", { name: "Probar aviso y sonido" }).click();
+  await expect(page.getByRole("alert")).toContainText("El sonido está activo");
+  expect(await page.evaluate(() => (window as any).completionAlerts)).toEqual([
+    { showNotification: false },
+  ]);
+});
+
+test("avisos desactivados no notifican y conservan la preferencia", async ({
+  page,
+}) => {
+  await page.getByLabel("Notificar al terminar", { exact: true }).uncheck();
+  await page.getByLabel("Minutos", { exact: true }).fill("1");
+  await page.getByRole("button", { name: "Iniciar", exact: true }).click();
+  await page.clock.runFor(61000);
+  await expect(page.getByRole("timer")).toHaveText("0:00");
+  expect(
+    await page.evaluate(() => (window as any).completionAlerts.length),
+  ).toBe(0);
+  await page.reload();
+  await expect(
+    page.getByLabel("Notificar al terminar", { exact: true }),
+  ).not.toBeChecked();
 });

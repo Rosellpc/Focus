@@ -12,8 +12,8 @@ import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import {
   isPermissionGranted,
   requestPermission,
-  sendNotification,
 } from "@tauri-apps/plugin-notification";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { localDate } from "../services/stats";
 import type { StoredHabit } from "../services/db";
@@ -57,7 +57,7 @@ export function DesktopTools({
   const [auto, setAuto] = useState(false);
   const [settingBusy, setSettingBusy] = useState(false);
   const [notifications, setNotifications] = useState(
-    () => localStorage.getItem("focus-notifications") === "true",
+    () => localStorage.getItem("focus-notifications") !== "false",
   );
   const [error, setError] = useState("");
   const notified = useRef(false);
@@ -83,16 +83,7 @@ export function DesktopTools({
     if (!session || !finished || session.notified || notified.current) return;
     notified.current = true;
     setSession({ ...session, notified: true });
-    if (notifications)
-      void isPermissionGranted()
-        .then((granted) => {
-          if (granted)
-            sendNotification({
-              title: "Focus",
-              body: "Sesión terminada. Abre Focus para guardar los minutos.",
-            });
-        })
-        .catch((e) => setError(String(e)));
+    if (notifications) void sendCompletionAlert();
   }, [session, finished, notifications]);
   const active = habits.filter((h) => !h.archivedOn);
   const selectedId = habitId || active[0]?.id || "";
@@ -152,6 +143,29 @@ export function DesktopTools({
       setAuto(await isEnabled());
     } catch (err) {
       setError(String(err));
+    } finally {
+      setSettingBusy(false);
+    }
+  }
+  async function sendCompletionAlert() {
+    try {
+      const granted =
+        (await isPermissionGranted()) ||
+        (await requestPermission()) === "granted";
+      await invoke("notify_timer_finished", { showNotification: granted });
+      if (!granted)
+        setError(
+          "El sonido está activo, pero Windows no permite el mensaje. Revisa Configuración > Sistema > Notificaciones > Focus.",
+        );
+    } catch (err) {
+      setError(`No se pudo enviar el aviso: ${String(err)}`);
+    }
+  }
+  async function testNotification() {
+    setSettingBusy(true);
+    setError("");
+    try {
+      await sendCompletionAlert();
     } finally {
       setSettingBusy(false);
     }
@@ -306,6 +320,11 @@ export function DesktopTools({
               </div>
             </div>
           )}
+          {finished && (
+            <p role="status" className="neo-completion">
+              Sesión terminada. Guarda tus minutos cuando estás listo.
+            </p>
+          )}
           <div className="neo-controls">
             {!session ? (
               <button
@@ -390,6 +409,13 @@ export function DesktopTools({
               onChange={(e) => void toggleNotifications(e.target.checked)}
             />
           </label>
+          <button
+            className="neo-presets notification-test"
+            disabled={settingBusy || !notifications}
+            onClick={() => void testNotification()}
+          >
+            <Bell size={14} /> Probar aviso y sonido
+          </button>
           <div className="neo-tray">
             <span className="neo-option-icon">
               <PanelsTopLeft size={19} strokeWidth={1.5} />
