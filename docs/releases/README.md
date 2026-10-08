@@ -2,7 +2,7 @@
 
 | Versión            | Cambios principales                                               |
 | ------------------ | ----------------------------------------------------------------- |
-| [0.1.4](v0.1.4.md) | Documentación actualizada y prueba de actualización Android       |
+| [0.1.4](v0.2.1.md) | Documentación actualizada y prueba de actualización Android       |
 | [0.1.3](v0.1.3.md) | Modo claro, audio, icono compartido y publicación Windows/Android |
 | [0.1.2](v0.1.2.md) | Updater Windows y avisos del temporizador                         |
 | [0.1.1](v0.1.1.md) | Consulta las notas históricas                                     |
