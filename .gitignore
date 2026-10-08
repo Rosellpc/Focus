@@ -26,3 +26,10 @@ dist-ssr
 # Generated verification artifacts
 /test-results/
 /playwright-report/
+
+# Private Android signing material
+/.android-signing/
+/android-backups/
+*.jks
+*.keystore
+**/keystore.properties

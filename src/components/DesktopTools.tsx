@@ -16,6 +16,7 @@ import {
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { localDate } from "../services/stats";
+import { isMobile } from "../services/platform";
 import type { StoredHabit } from "../services/db";
 type Session = {
   habitId: string;
@@ -62,6 +63,7 @@ export function DesktopTools({
   const [error, setError] = useState("");
   const notified = useRef(false);
   useEffect(() => {
+    if (isMobile) return;
     isEnabled()
       .then(setAuto)
       .catch((e) => setError(String(e)));
@@ -377,7 +379,7 @@ export function DesktopTools({
           <p className="neo-options-intro">
             Pequeños ajustes para acompañar tu día.
           </p>
-          <label className="neo-option">
+          {!isMobile && <label className="neo-option">
             <span className="neo-option-icon">
               <Monitor size={18} strokeWidth={1.5} />
             </span>
@@ -392,7 +394,7 @@ export function DesktopTools({
               disabled={settingBusy}
               onChange={(e) => void toggleAutostart(e.target.checked)}
             />
-          </label>
+          </label>}
           <label className="neo-option">
             <span className="neo-option-icon">
               <Bell size={18} strokeWidth={1.5} />
@@ -416,7 +418,7 @@ export function DesktopTools({
           >
             <Bell size={14} /> Probar aviso y sonido
           </button>
-          <div className="neo-tray">
+          {!isMobile && <div className="neo-tray">
             <span className="neo-option-icon">
               <PanelsTopLeft size={19} strokeWidth={1.5} />
             </span>
@@ -436,11 +438,11 @@ export function DesktopTools({
               Ocultar en la bandeja
               <PanelsTopLeft size={14} />
             </button>
-          </div>
-          <p className="neo-footnote">
+          </div>}
+          {!isMobile && <p className="neo-footnote">
             Puedes abrir Focus desde su icono en la bandeja. Cerrar la ventana
             termina la aplicación.
-          </p>
+          </p>}
         </section>
         {error && (
           <p role="alert" className="neo-error">

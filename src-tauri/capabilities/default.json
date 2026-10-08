@@ -8,8 +8,6 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "notification:default",
-    "autostart:default",
-    "core:window:allow-hide"
+    "notification:default"
   ]
 }

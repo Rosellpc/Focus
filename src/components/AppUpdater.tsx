@@ -1,7 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { check, type Update } from "@tauri-apps/plugin-updater";
+import { isAndroid, isMobile } from "../services/platform";
+import { AndroidAppUpdater } from "./AndroidAppUpdater";
 
-export function AppUpdater({
+type UpdaterProps = {
+  busy: boolean;
+  onInstallingChange: (value: boolean) => void;
+};
+export function AppUpdater(props: UpdaterProps) {
+  if (isAndroid) return <AndroidAppUpdater busy={props.busy} />;
+  if (isMobile) return null;
+  return <DesktopAppUpdater {...props} />;
+}
+
+function DesktopAppUpdater({
   busy,
   onInstallingChange,
 }: {
@@ -43,6 +55,7 @@ export function AppUpdater({
     }
   }
   useEffect(() => {
+    if (isMobile) return;
     const timer = window.setTimeout(() => void search(), 1500);
     return () => {
       clearTimeout(timer);
@@ -92,6 +105,7 @@ export function AppUpdater({
       onInstallingChange(false);
     }
   }
+  if (isMobile) return null;
   return (
     <section
       className="app-updater glass-panel"

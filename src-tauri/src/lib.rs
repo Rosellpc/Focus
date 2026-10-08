@@ -1,4 +1,5 @@
 mod storage;
+#[cfg(desktop)]
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
@@ -32,7 +33,9 @@ fn notify_timer_finished(app: tauri::AppHandle, show_notification: bool) -> Resu
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(desktop)]
+    let builder = builder
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             if let Some(window) = app.get_webview_window("main") {
@@ -41,9 +44,6 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
-        .manage(storage::Storage::default())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .setup(|app| {
             let show = MenuItem::with_id(app, "show", "Abrir Focus", true, None::<&str>)?;
@@ -72,7 +72,11 @@ pub fn run() {
                 })
                 .build(app)?;
             Ok(())
-        })
+        });
+    builder
+        .manage(storage::Storage::default())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .invoke_handler(tauri::generate_handler![
             notify_timer_finished,
             storage::snapshot,

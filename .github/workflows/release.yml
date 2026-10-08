@@ -1,4 +1,4 @@
-name: Publish signed Windows release
+name: Publish signed Windows and Android release
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: focus-release-${{ github.ref }}
+  group: focus-release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -63,13 +63,13 @@ jobs:
         with:
           tagName: ${{ inputs.tag || github.ref_name }}
           releaseName: Focus v__VERSION__
-          releaseBody: "Actualizaciones desde Focus, avisos de sesión y mejoras de escritorio. Consulta las notas en docs/releases de esta versión. Para activar el updater por primera vez, instala manualmente el ejecutable. Las siguientes versiones podrán instalarse desde la app."
+          releaseBody: "Instaladores firmados para Windows x64 y Android ARM64. Consulta las notas en docs/releases de esta versión. Android detecta nuevas versiones desde Focus y abre la descarga del APK; confirma la instalación sin desinstalar la app."
           releaseDraft: true
           prerelease: false
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
           updaterJsonPreferNsis: true
-      - name: Verify assets, upload checksum and publish
+      - name: Verify Windows assets and upload checksum
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,5 +88,94 @@ jobs:
           if ($manifest.version.TrimStart('v') -ne $version -or !$platform.url -or !$platform.signature) { throw 'Invalid updater manifest' }
           $signature = (Get-Content -LiteralPath "$installer.sig" -Raw).Trim()
           if ($platform.signature.Trim() -ne $signature) { throw 'Updater signature does not match installer' }
-          gh release edit "v$version" --draft=false --latest
-          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
+
+  android:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+      - uses: android-actions/setup-android@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - name: Install Android SDK and NDK
+        run: |
+          sdkmanager 'platforms;android-37' 'build-tools;37.0.0' 'ndk;30.0.16248370'
+          echo "NDK_HOME=$ANDROID_HOME/ndk/30.0.16248370" >> "$GITHUB_ENV"
+          chmod +x src-tauri/gen/android/gradlew
+      - name: Configure permanent signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: python3 scripts/configure-android-ci.py
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm tauri android build --apk --target aarch64
+      - name: Verify APK and prepare release assets
+        env:
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          apk=src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose --print-certs "$apk" | tee "$RUNNER_TEMP/apk-signature.txt"
+          grep -i 'certificate SHA-256 digest: 510614a7c250d94da6d6a82244428bfddcc5d86aaefb945896efaea3c971fb12' "$RUNNER_TEMP/apk-signature.txt"
+          keytool -exportcert -keystore "$RUNNER_TEMP/focus-release.jks" -alias focus-release -storepass:env ANDROID_KEY_PASSWORD -file "$RUNNER_TEMP/focus-release.cer"
+          echo '510614a7c250d94da6d6a82244428bfddcc5d86aaefb945896efaea3c971fb12  '"$RUNNER_TEMP/focus-release.cer" | sha256sum -c -
+          "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging "$apk" > "$RUNNER_TEMP/apk-badging.txt"
+          if grep -q 'application-debuggable' "$RUNNER_TEMP/apk-badging.txt"; then exit 1; fi
+          grep -F "name='com.focus.app'" "$RUNNER_TEMP/apk-badging.txt"
+          grep -F "versionName='$version'" "$RUNNER_TEMP/apk-badging.txt"
+          mkdir -p android-release
+          cp "$apk" "android-release/Focus_${version}_arm64.apk"
+          cd android-release
+          sha256sum "Focus_${version}_arm64.apk" > ANDROID-SHA256SUMS.txt
+      - name: Upload Android assets to draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          gh release upload "v$version" android-release/* --clobber
+      - name: Remove temporary signing files
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/focus-release.jks" "$RUNNER_TEMP/focus-release.cer" src-tauri/gen/android/keystore.properties
+
+  publish:
+    needs: [release, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - name: Publish complete release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          test "$RELEASE_TAG" = "v$version"
+          mkdir verify-release
+          gh release download "$RELEASE_TAG" --dir verify-release
+          test -s verify-release/latest.json
+          test -s "verify-release/Focus_${version}_x64-setup.exe.sig"
+          cd verify-release
+          sha256sum -c SHA256SUMS.txt
+          sha256sum -c ANDROID-SHA256SUMS.txt
+          cd ..
+          gh release edit "$RELEASE_TAG" --draft=false --latest
