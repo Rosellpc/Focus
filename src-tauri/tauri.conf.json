@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Focus",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "identifier": "com.focus.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -25,9 +25,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "nsis"
-    ],
+    "targets": ["nsis"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -36,13 +34,20 @@
       "icons/icon.ico"
     ],
     "shortDescription": "Registro personal de hábitos y tiempo",
+    "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
         "installMode": "currentUser",
-        "languages": [
-          "Spanish"
-        ]
+        "languages": ["Spanish"]
       }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE3N0NGMzM5MUJDNjVBQzcKUldUSFdzWWJPZk44RjFxMTYxSG5lQXJsclNZN0RyTkFWbC9sZDhia0dpcm1McTc5M1hoa2lzaFgK",
+      "endpoints": [
+        "https://github.com/Rosellpc/Focus/releases/latest/download/latest.json"
+      ]
     }
   }
 }

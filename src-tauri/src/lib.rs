@@ -11,17 +11,21 @@ fn notify_timer_finished(app: tauri::AppHandle, show_notification: bool) -> Resu
     #[cfg(target_os = "windows")]
     {
         #[link(name = "user32")]
-        extern "system" { fn MessageBeep(kind: u32) -> i32; }
+        extern "system" {
+            fn MessageBeep(kind: u32) -> i32;
+        }
         if unsafe { MessageBeep(0x40) } == 0 {
             return Err("Windows no pudo reproducir el sonido del aviso.".into());
         }
     }
     if show_notification {
         use tauri_plugin_notification::NotificationExt;
-        app.notification().builder()
+        app.notification()
+            .builder()
             .title("Focus ? Sesión terminada")
             .body("Tu tiempo de enfoque terminó. Abre Focus para guardar los minutos.")
-            .show().map_err(|err| err.to_string())?;
+            .show()
+            .map_err(|err| err.to_string())?;
     }
     Ok(())
 }
@@ -29,6 +33,7 @@ fn notify_timer_finished(app: tauri::AppHandle, show_notification: bool) -> Resu
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();

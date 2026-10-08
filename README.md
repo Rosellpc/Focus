@@ -4,7 +4,7 @@
 
 **Organiza tus hábitos, registra tus horas y empieza cada día desde cero.** Focus es una aplicación de escritorio para Windows 11, con almacenamiento local y una interfaz minimalista de cristal en tonos cálidos. No requiere cuenta ni conexión a Internet para el uso diario.
 
-[Descargar Focus v0.1.1 para Windows](https://github.com/Rosellpc/Focus/releases/download/v0.1.1/Focus_0.1.1_x64-setup.exe) · [Ver releases](https://github.com/Rosellpc/Focus/releases) · [Notas de v0.1.1](docs/releases/v0.1.1.md)
+[Descargar Focus v0.1.2 para Windows](https://github.com/Rosellpc/Focus/releases/download/v0.1.2/Focus_0.1.2_x64-setup.exe) · [Ver releases](https://github.com/Rosellpc/Focus/releases) · [Notas de v0.1.2](docs/releases/v0.1.2.md)
 
 ![Interfaz de Focus con datos de prueba](docs/design-preview.png)
 
@@ -12,7 +12,7 @@
 
 ## Instalación en Windows 11
 
-1. Descarga `Focus_0.1.1_x64-setup.exe` desde el [release v0.1.1](https://github.com/Rosellpc/Focus/releases/tag/v0.1.1).
+1. Descarga `Focus_0.1.2_x64-setup.exe` desde el [release v0.1.2](https://github.com/Rosellpc/Focus/releases/tag/v0.1.2).
 2. Ejecuta el instalador y sigue el asistente: **Siguiente → Instalar → Finalizar**.
 3. Abre **Inicio**, busca **Focus** y ejecútalo. También puedes crear un acceso directo en el escritorio desde la ubicación del acceso directo en Inicio.
 
@@ -21,7 +21,7 @@ El instalador es para Windows **x64** y el usuario actual. No necesitas Node, Ru
 El release incluye `SHA256SUMS.txt` para comprobar el archivo descargado. Desde PowerShell, en la carpeta de descargas:
 
 ```powershell
-Get-FileHash .\Focus_0.1.1_x64-setup.exe -Algorithm SHA256
+Get-FileHash .\Focus_0.1.2_x64-setup.exe -Algorithm SHA256
 ```
 
 Compara el resultado con el checksum publicado.
@@ -107,3 +107,9 @@ El icono original está en `public/focus.svg`; se regenera con:
 ```bash
 pnpm tauri icon public/focus.svg
 ```
+
+## Actualizaciones desde Focus
+
+La v0.1.2 incorpora el updater. Instala esta versión manualmente una vez; las siguientes se buscan al abrir la app y se instalan con **Actualizar ahora**. Guarda o descarta la sesión del temporizador y cierra los formularios antes de actualizar. Si no hay conexión, puedes seguir usando Focus y reintentar la consulta.
+
+Los releases se generan al subir una etiqueta de versión mediante [.github/workflows/release.yml](.github/workflows/release.yml). El workflow usa los Secrets de firma, genera el instalador, su firma, `latest.json` y el checksum; publica solamente después de verificar los archivos. Consulta el [procedimiento de publicación](docs/releases/v0.1.2.md).

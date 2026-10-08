@@ -36,11 +36,38 @@ test.beforeEach(async ({ page }) => {
       failNext = true;
     };
     (window as any).__TAURI_INTERNALS__ = {
+      transformCallback: () => 1,
+      unregisterCallback: () => {},
       metadata: {
         currentWindow: { label: "main" },
         currentWebview: { label: "main" },
       },
       invoke: async (command: string, args: any) => {
+        if (command === "plugin:updater|check") {
+          if ((window as any).failUpdate) throw new Error("Network failure");
+          return (window as any).availableUpdate
+            ? {
+                rid: 99,
+                currentVersion: "0.1.2",
+                version: "0.1.3",
+                body: "Nueva versión",
+              }
+            : null;
+        }
+        if (command === "plugin:updater|download_and_install") {
+          (window as any).updateInstalls =
+            ((window as any).updateInstalls || 0) + 1;
+          args.onEvent.onmessage({
+            event: "Started",
+            data: { contentLength: 100 },
+          });
+          args.onEvent.onmessage({
+            event: "Progress",
+            data: { chunkLength: 100 },
+          });
+          args.onEvent.onmessage({ event: "Finished" });
+          return;
+        }
         if (command === "snapshot") {
           if (failSnapshot) {
             failSnapshot = false;
@@ -467,4 +494,69 @@ test("avisos desactivados no notifican y conservan la preferencia", async ({
   await expect(
     page.getByLabel("Notificar al terminar", { exact: true }),
   ).not.toBeChecked();
+});
+
+test("updater busca al abrir y permite instalar una versión disponible", async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    (window as any).availableUpdate = true;
+  });
+  await page.clock.runFor(1600);
+  await expect(
+    page.getByText("Focus 0.1.3 está disponible.", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Actualizar ahora", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Instalando actualización. Focus se cerrará para aplicar los cambios.",
+    ),
+  ).toBeVisible();
+  expect(await page.evaluate(() => (window as any).updateInstalls)).toBe(1);
+});
+
+test("updater protege la sesión pendiente y permite reintentar tras fallo de red", async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    (window as any).availableUpdate = true;
+  });
+  await page
+    .getByRole("button", { name: "Buscar actualizaciones", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Iniciar", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Actualizar ahora", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Guarda o descarta tu sesión del temporizador antes de actualizar.",
+    ),
+  ).toBeVisible();
+  expect(await page.evaluate(() => (window as any).updateInstalls || 0)).toBe(
+    0,
+  );
+  await page.evaluate(() => {
+    (window as any).failUpdate = true;
+  });
+  await page
+    .getByRole("button", { name: "Buscar actualizaciones", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "No se pudieron consultar las actualizaciones. Comprueba tu conexión y vuelve a intentarlo.",
+    ),
+  ).toBeVisible();
+  await page.evaluate(() => {
+    (window as any).failUpdate = false;
+    (window as any).availableUpdate = false;
+  });
+  await page
+    .getByRole("button", { name: "Buscar actualizaciones", exact: true })
+    .click();
+  await expect(
+    page.getByText("Focus está actualizado.", { exact: true }),
+  ).toBeVisible();
 });

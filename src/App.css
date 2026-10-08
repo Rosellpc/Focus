@@ -1129,3 +1129,28 @@
   color: #faf7f2;
   text-align: center;
 }
+
+.app-updater {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  font-size: 12px;
+}
+.app-updater strong {
+  font-weight: 500;
+}
+.app-updater p,
+.app-updater small {
+  color: #ded8d0;
+  display: block;
+  margin-top: 5px;
+}
+.update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

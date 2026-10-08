@@ -1,0 +1,79 @@
+name: Publish signed Windows release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: focus-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - name: Validate version and signing secret
+        shell: pwsh
+        env:
+          SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SIGNING_KEY)) { throw 'Missing TAURI_SIGNING_PRIVATE_KEY secret' }
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tauriVersion = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          if ($version -ne $tauriVersion) { throw 'Package and Tauri versions differ' }
+          if ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne "v$version") { throw 'Run this workflow on the matching version tag' }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - name: Build signed installer and updater manifest
+        id: tauri
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Focus v__VERSION__
+          releaseBody: "Actualizaciones desde Focus, avisos de sesión y mejoras de escritorio. Consulta las notas en docs/releases de esta versión. Para activar el updater por primera vez, instala manualmente el ejecutable. Las siguientes versiones podrán instalarse desde la app."
+          releaseDraft: true
+          prerelease: false
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
+          updaterJsonPreferNsis: true
+      - name: Verify assets, upload checksum and publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $installer = "src-tauri/target/release/bundle/nsis/Focus_${version}_x64-setup.exe"
+          if (!(Test-Path -LiteralPath "$installer.sig")) { throw 'Installer signature missing' }
+          $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  Focus_${version}_x64-setup.exe" | Set-Content SHA256SUMS.txt -Encoding ascii
+          gh release upload "v$version" SHA256SUMS.txt --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Checksum upload failed' }
+          gh release download "v$version" --pattern latest.json --dir updater-check
+          if ($LASTEXITCODE -ne 0) { throw 'Updater manifest missing' }
+          $manifest = Get-Content updater-check/latest.json -Raw | ConvertFrom-Json
+          $platform = $manifest.platforms.'windows-x86_64'
+          if ($manifest.version.TrimStart('v') -ne $version -or !$platform.url -or !$platform.signature) { throw 'Invalid updater manifest' }
+          $signature = (Get-Content -LiteralPath "$installer.sig" -Raw).Trim()
+          if ($platform.signature.Trim() -ne $signature) { throw 'Updater signature does not match installer' }
+          gh release edit "v$version" --draft=false --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

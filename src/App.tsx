@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Modal } from "./components/Modal";
+import { AppUpdater } from "./components/AppUpdater";
 import { DesktopTools } from "./components/DesktopTools";
 import { Header } from "./components/Header";
 import { HabitCard } from "./components/HabitCard";
@@ -82,7 +83,9 @@ export default function App() {
   const [today, setToday] = useState(localDate);
   const [date, setDate] = useState(localDate);
   const [month, setMonth] = useState(() => localDate().slice(0, 7));
-  const [busy, setBusy] = useState(false);
+  const [saving, setBusy] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const busy = saving || updating;
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -258,6 +261,7 @@ export default function App() {
             setActiveTab={setActiveTab}
             targetHours={dailyTarget / 60}
           />
+          <AppUpdater busy={busy || !!editor || !!record || !!pendingImport} onInstallingChange={setUpdating} />
           <fieldset disabled={busy} className="action-toolbar">
             <button
               className={button}
