@@ -1,6 +1,6 @@
 [package]
 name = "focus-app"
-version = "0.1.0"
+version = "0.1.1"
 description = "Registro personal de hábitos y tiempo"
 authors = ["you"]
 edition = "2021"
