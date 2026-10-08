@@ -241,9 +241,8 @@ export default function App() {
             onClick={() => {
               const tools = document.getElementById(
                 "desktop-tools",
-              ) as HTMLDetailsElement | null;
+              ) as HTMLElement | null;
               if (tools) {
-                tools.open = true;
                 tools.scrollIntoView({ behavior: "smooth", block: "center" });
               }
             }}
@@ -461,6 +460,16 @@ export default function App() {
                   </div>
                 ))}
               </div>
+              <DesktopTools
+                habits={data.habits}
+                busy={busy}
+                onSave={(id, sessionDate, minutes) =>
+                  run(
+                    () => saveMinutes(id, sessionDate, minutes, true),
+                    "Sesión guardada.",
+                  )
+                }
+              />
               {completedHabits.length > 0 && (
                 <details className="rounded-xl border border-emerald-500/20 p-4">
                   <summary className="cursor-pointer">
@@ -572,7 +581,7 @@ export default function App() {
               </p>
             </main>
           )}
-          {loaded && (
+          {loaded && activeTab === "reports" && (
             <DesktopTools
               habits={data.habits}
               busy={busy}

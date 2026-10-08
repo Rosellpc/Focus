@@ -196,9 +196,7 @@ test("crear y archivar hábito con meta dinámica", async ({ page }) => {
 test("cambio local de día y sesión guardada en fecha de inicio", async ({
   page,
 }) => {
-  await page
-    .getByText("Temporizador y opciones de escritorio", { exact: true })
-    .click();
+  await expect(page.getByRole("timer")).toBeVisible();
   await page.getByLabel("Minutos", { exact: true }).fill("1");
   await page.getByRole("button", { name: "Iniciar", exact: true }).click();
   await page.clock.runFor(61000);
@@ -362,4 +360,43 @@ test("vista de referencia de escritorio", async ({ page }) => {
     path: "test-results/focus-report.png",
     fullPage: true,
   });
+});
+
+test("panel neumórfico: duración, opciones y sesión", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 1000 });
+  await expect(page.getByRole("timer")).toBeVisible();
+  await page.getByRole("button", { name: "45 min", exact: true }).click();
+  await expect(page.getByLabel("Minutos", { exact: true })).toHaveValue("45");
+  await expect(page.getByRole("timer")).toHaveText("45:00");
+  await page.getByLabel("Ajustar duración", { exact: true }).fill("30");
+  await expect(page.getByRole("timer")).toHaveText("30:00");
+  await page
+    .getByRole("checkbox", { name: "Iniciar con Windows", exact: true })
+    .check();
+  await expect(
+    page.getByRole("checkbox", { name: "Iniciar con Windows", exact: true }),
+  ).toBeChecked();
+  await page
+    .getByRole("checkbox", { name: "Iniciar con Windows", exact: true })
+    .uncheck();
+  await page
+    .locator(".studio-body")
+    .screenshot({ path: "test-results/timer-studio.png" });
+  await page.getByRole("button", { name: "Iniciar", exact: true }).click();
+  await page.clock.runFor(61000);
+  await expect(page.getByRole("timer")).toHaveText("28:59");
+  await page
+    .getByRole("button", { name: "Terminar y guardar", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toHaveText("Sesión guardada.");
+  await page.setViewportSize({ width: 480, height: 850 });
+  await expect(page.getByRole("timer")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page
+    .locator(".studio-body")
+    .screenshot({ path: "test-results/timer-studio-compact.png" });
 });
