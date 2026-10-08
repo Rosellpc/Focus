@@ -261,7 +261,10 @@ export default function App() {
             setActiveTab={setActiveTab}
             targetHours={dailyTarget / 60}
           />
-          <AppUpdater busy={busy || !!editor || !!record || !!pendingImport} onInstallingChange={setUpdating} />
+          <AppUpdater
+            busy={busy || !!editor || !!record || !!pendingImport}
+            onInstallingChange={setUpdating}
+          />
           <fieldset disabled={busy} className="action-toolbar">
             <button
               className={button}
