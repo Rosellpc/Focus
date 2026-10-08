@@ -102,10 +102,10 @@ pnpm tauri build
 
 El archivo se genera en `src-tauri/target/release/bundle/nsis/`. En PowerShell, si la política de scripts bloquea `pnpm.ps1`, usa `pnpm.cmd`.
 
-El icono original está en `public/focus.svg`; se regenera con:
+El icono usa el mismo componente Sparkles de la cabecera. Los archivos fuente están en `public/focus.svg` y `public/focus-icon.json`; se regeneran para Windows y Android con:
 
 ```bash
-pnpm tauri icon public/focus.svg
+pnpm icons
 ```
 
 ## Actualizaciones desde Focus

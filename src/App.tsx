@@ -307,6 +307,7 @@ export default function App() {
             <input
               ref={fileInput}
               type="file"
+              aria-label="Archivo de respaldo"
               accept=".json,application/json"
               className="hidden"
               onChange={async (e) => {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { LayoutDashboard, BarChart3, Sparkles } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 interface HeaderProps {
   targetHours: number;
   activeTab: "dashboard" | "reports";
@@ -24,6 +25,7 @@ export function Header({ activeTab, setActiveTab, targetHours }: HeaderProps) {
           <p>Un día a la vez.</p>
         </div>
       </div>
+      <ThemeToggle />
       <nav aria-label="Vistas de Focus" className="view-switch">
         <button
           aria-pressed={activeTab === "dashboard"}

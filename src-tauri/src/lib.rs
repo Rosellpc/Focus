@@ -7,7 +7,7 @@ use tauri::{
 };
 
 #[tauri::command]
-fn notify_timer_finished(app: tauri::AppHandle, show_notification: bool) -> Result<(), String> {
+fn notify_timer_finished(app: tauri::AppHandle, show_notification: bool, play_sound: Option<bool>) -> Result<(), String> {
     // Play the Windows system chime even if toast notifications are blocked.
     #[cfg(target_os = "windows")]
     {
@@ -15,10 +15,12 @@ fn notify_timer_finished(app: tauri::AppHandle, show_notification: bool) -> Resu
         extern "system" {
             fn MessageBeep(kind: u32) -> i32;
         }
-        if unsafe { MessageBeep(0x40) } == 0 {
+        if play_sound.unwrap_or(true) && unsafe { MessageBeep(0x40) } == 0 {
             return Err("Windows no pudo reproducir el sonido del aviso.".into());
         }
     }
+    #[cfg(not(target_os = "windows"))]
+    let _ = play_sound;
     if show_notification {
         use tauri_plugin_notification::NotificationExt;
         app.notification()

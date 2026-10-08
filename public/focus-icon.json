@@ -1,0 +1,8 @@
+{
+  "default": "focus.svg",
+  "android_fg": "focus-symbol.svg",
+  "android_bg": "focus-background.svg",
+  "android_fg_scale": 75,
+  "android_monochrome": "focus-monochrome.svg",
+  "bg_color": "#EEF2F3"
+}

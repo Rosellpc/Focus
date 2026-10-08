@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "icons": "node scripts/generate-brand-icon.cjs && tauri icon public/focus-icon.json",
     "test": "node tests/stats.cjs && node tests/android-updates.cjs",
     "test:ui": "node tests/run-ui.cjs"
   },

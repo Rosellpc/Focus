@@ -18,6 +18,8 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { localDate } from "../services/stats";
 import { isMobile } from "../services/platform";
 import type { StoredHabit } from "../services/db";
+import { RingtoneSettings } from "./RingtoneSettings";
+import { ringtone } from "../services/ringtone";
 type Session = {
   habitId: string;
   date: string;
@@ -115,6 +117,14 @@ export function DesktopTools({
       setError("Selecciona un hábito y una duración entre 1 y 1440 minutos.");
       return;
     }
+    ringtone.stop();
+    void ringtone
+      .unlock()
+      .catch(() =>
+        setError(
+          "No se pudo activar el audio. Prueba el sonido antes de iniciar.",
+        ),
+      );
     const start = Date.now();
     notified.current = false;
     setError("");
@@ -133,6 +143,7 @@ export function DesktopTools({
       (Math.min(Date.now(), session.end) - session.started) / 60000,
     );
     if (await onSave(session.habitId, session.date, minutes)) {
+      ringtone.stop();
       localStorage.removeItem(key);
       setSession(null);
     }
@@ -150,11 +161,22 @@ export function DesktopTools({
     }
   }
   async function sendCompletionAlert() {
+    let customSound = false;
+    let audioError = "";
+    try {
+      customSound = await ringtone.play();
+    } catch (err) {
+      audioError = `No se pudo reproducir tu audio: ${String(err)}`;
+    }
     try {
       const granted =
         (await isPermissionGranted()) ||
         (await requestPermission()) === "granted";
-      await invoke("notify_timer_finished", { showNotification: granted });
+      await invoke("notify_timer_finished", {
+        showNotification: granted,
+        ...(customSound ? { playSound: false } : {}),
+      });
+      if (audioError) setError(audioError);
       if (!granted)
         setError(
           "El sonido está activo, pero Windows no permite el mensaje. Revisa Configuración > Sistema > Notificaciones > Focus.",
@@ -164,15 +186,18 @@ export function DesktopTools({
     }
   }
   async function testNotification() {
+    const audioReady = ringtone.unlock();
     setSettingBusy(true);
     setError("");
     try {
+      await audioReady;
       await sendCompletionAlert();
     } finally {
       setSettingBusy(false);
     }
   }
   async function toggleNotifications(value: boolean) {
+    if (!value) ringtone.stop();
     setSettingBusy(true);
     setError("");
     try {
@@ -351,6 +376,7 @@ export function DesktopTools({
                   className="neo-stop"
                   disabled={busy}
                   onClick={() => {
+                    ringtone.stop();
                     setSession(null);
                     setError("");
                   }}
@@ -379,22 +405,24 @@ export function DesktopTools({
           <p className="neo-options-intro">
             Pequeños ajustes para acompañar tu día.
           </p>
-          {!isMobile && <label className="neo-option">
-            <span className="neo-option-icon">
-              <Monitor size={18} strokeWidth={1.5} />
-            </span>
-            <span className="neo-option-copy">
-              <strong>Iniciar con Windows</strong>
-              <small>Focus, listo al empezar tu día.</small>
-            </span>
-            <input
-              aria-label="Iniciar con Windows"
-              type="checkbox"
-              checked={auto}
-              disabled={settingBusy}
-              onChange={(e) => void toggleAutostart(e.target.checked)}
-            />
-          </label>}
+          {!isMobile && (
+            <label className="neo-option">
+              <span className="neo-option-icon">
+                <Monitor size={18} strokeWidth={1.5} />
+              </span>
+              <span className="neo-option-copy">
+                <strong>Iniciar con Windows</strong>
+                <small>Focus, listo al empezar tu día.</small>
+              </span>
+              <input
+                aria-label="Iniciar con Windows"
+                type="checkbox"
+                checked={auto}
+                disabled={settingBusy}
+                onChange={(e) => void toggleAutostart(e.target.checked)}
+              />
+            </label>
+          )}
           <label className="neo-option">
             <span className="neo-option-icon">
               <Bell size={18} strokeWidth={1.5} />
@@ -418,31 +446,38 @@ export function DesktopTools({
           >
             <Bell size={14} /> Probar aviso y sonido
           </button>
-          {!isMobile && <div className="neo-tray">
-            <span className="neo-option-icon">
-              <PanelsTopLeft size={19} strokeWidth={1.5} />
-            </span>
-            <h3>
-              Menos ventanas.
-              <br />
-              El mismo enfoque.
-            </h3>
-            <p>Oculta Focus en la bandeja para mantener tu sesión en marcha.</p>
-            <button
-              onClick={() =>
-                void getCurrentWindow()
-                  .hide()
-                  .catch((e) => setError(String(e)))
-              }
-            >
-              Ocultar en la bandeja
-              <PanelsTopLeft size={14} />
-            </button>
-          </div>}
-          {!isMobile && <p className="neo-footnote">
-            Puedes abrir Focus desde su icono en la bandeja. Cerrar la ventana
-            termina la aplicación.
-          </p>}
+          <RingtoneSettings disabled={settingBusy || busy} />
+          {!isMobile && (
+            <div className="neo-tray">
+              <span className="neo-option-icon">
+                <PanelsTopLeft size={19} strokeWidth={1.5} />
+              </span>
+              <h3>
+                Menos ventanas.
+                <br />
+                El mismo enfoque.
+              </h3>
+              <p>
+                Oculta Focus en la bandeja para mantener tu sesión en marcha.
+              </p>
+              <button
+                onClick={() =>
+                  void getCurrentWindow()
+                    .hide()
+                    .catch((e) => setError(String(e)))
+                }
+              >
+                Ocultar en la bandeja
+                <PanelsTopLeft size={14} />
+              </button>
+            </div>
+          )}
+          {!isMobile && (
+            <p className="neo-footnote">
+              Puedes abrir Focus desde su icono en la bandeja. Cerrar la ventana
+              termina la aplicación.
+            </p>
+          )}
         </section>
         {error && (
           <p role="alert" className="neo-error">

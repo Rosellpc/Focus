@@ -1,5 +1,129 @@
 import { test, expect } from "@playwright/test";
 
+test("audio propio se conserva, suena al terminar y puede detenerse", async ({
+  page,
+}) => {
+  const samples = 8000 * 30;
+  const wav = Buffer.alloc(44 + samples * 2);
+  wav.write("RIFF", 0);
+  wav.writeUInt32LE(wav.length - 8, 4);
+  wav.write("WAVEfmt ", 8);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(8000, 24);
+  wav.writeUInt32LE(16000, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write("data", 36);
+  wav.writeUInt32LE(samples * 2, 40);
+  for (let i = 0; i < samples; i++)
+    wav.writeInt16LE(
+      Math.round(100 * Math.sin((i * 2 * Math.PI * 440) / 8000)),
+      44 + i * 2,
+    );
+  const picker = page.getByLabel("Archivo de sonido", { exact: true });
+  await picker.setInputFiles({
+    name: "Mi cancion.wav",
+    mimeType: "audio/wav",
+    buffer: wav,
+  });
+  await expect(page.locator(".ringtone-name")).toHaveText("Mi cancion.wav");
+  await expect(
+    page.getByText("0:30 · Se reproduce completo una vez."),
+  ).toBeVisible();
+  await picker.setInputFiles({
+    name: "roto.mp3",
+    mimeType: "audio/mpeg",
+    buffer: Buffer.from("invalid audio"),
+  });
+  await expect(page.getByRole("alert")).toContainText(
+    "No se pudo cargar o guardar el audio",
+  );
+  await expect(page.locator(".ringtone-name")).toHaveText("Mi cancion.wav");
+  await page.reload();
+  await expect(page.locator(".ringtone-name")).toHaveText("Mi cancion.wav");
+  await page
+    .getByRole("button", { name: "Probar sonido", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Detener sonido", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Detener sonido", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Detener sonido", exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Minutos", { exact: true }).fill("1");
+  await page.getByRole("button", { name: "Iniciar", exact: true }).click();
+  await page.clock.runFor(61000);
+  await expect(
+    page.getByRole("button", { name: "Detener sonido", exact: true }),
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => (window as any).completionAlerts.length))
+    .toBe(1);
+  expect(
+    await page.evaluate(() => (window as any).completionAlerts[0]),
+  ).toEqual({ showNotification: true, playSound: false });
+  await page
+    .getByRole("button", { name: "Guardar sesión", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Detener sonido", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Usar predeterminado", exact: true })
+    .click();
+  await expect(page.locator(".ringtone-name")).toHaveText(
+    "Sonido predeterminado",
+  );
+  await page.reload();
+  await expect(page.locator(".ringtone-name")).toHaveText(
+    "Sonido predeterminado",
+  );
+});
+
+test("modo claro conserva la preferencia y adapta formularios y movil", async ({
+  page,
+}) => {
+  const toggle = page.getByRole("button", { name: "Modo claro", exact: true });
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("body")).toHaveCSS("color", "rgb(52, 69, 78)");
+  await page.screenshot({
+    path: "docs/white-mode-preview.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Nuevo hábito", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCSS(
+    "background-color",
+    "rgb(242, 245, 246)",
+  );
+  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.reload();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(toggle).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({ path: "docs/white-mode-mobile.png", fullPage: true });
+  await page
+    .getByRole("button", { name: "Reporte Mensual", exact: true })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.reload();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+});
+
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date("2026-10-07T23:59:50-05:00") });
   await page.addInitScript(() => {
@@ -251,7 +375,7 @@ test("respaldo y confirmación de restauración", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Mostrar respaldo" }),
   ).toBeVisible();
-  await page.locator('input[type="file"]').setInputFiles({
+  await page.getByLabel("Archivo de respaldo", { exact: true }).setInputFiles({
     name: "Focus.json",
     mimeType: "application/json",
     buffer: Buffer.from(
