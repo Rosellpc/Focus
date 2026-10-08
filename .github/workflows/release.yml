@@ -4,6 +4,11 @@ on:
   push:
     tags: ["v*.*.*"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Version tag to publish or retry
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,6 +22,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -28,16 +35,23 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
+          cache-on-failure: true
       - name: Validate version and signing secret
         shell: pwsh
         env:
           SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:SIGNING_KEY)) { throw 'Missing TAURI_SIGNING_PRIVATE_KEY secret' }
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
           $tauriVersion = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
           if ($version -ne $tauriVersion) { throw 'Package and Tauri versions differ' }
-          if ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne "v$version") { throw 'Run this workflow on the matching version tag' }
+          if ($env:RELEASE_TAG -ne "v$version") { throw 'Run this workflow on the matching version tag' }
+          $normalized = $env:SIGNING_KEY -replace '\s', ''
+          if ($normalized -notmatch '^[A-Za-z0-9+/]+={0,2}$') { throw 'Private key secret must contain only the Base64 key, without headers' }
+          try { $null = [Convert]::FromBase64String($normalized) } catch { throw 'Private key secret is not valid Base64' }
+          Write-Output "::add-mask::$normalized"
+          "TAURI_SIGNING_PRIVATE_KEY=$normalized" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - name: Build signed installer and updater manifest
@@ -45,10 +59,9 @@ jobs:
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
+          tagName: ${{ inputs.tag || github.ref_name }}
           releaseName: Focus v__VERSION__
           releaseBody: "Actualizaciones desde Focus, avisos de sesión y mejoras de escritorio. Consulta las notas en docs/releases de esta versión. Para activar el updater por primera vez, instala manualmente el ejecutable. Las siguientes versiones podrán instalarse desde la app."
           releaseDraft: true
