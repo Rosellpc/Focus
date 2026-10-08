@@ -45,7 +45,7 @@ Requiere Android 7.0 o superior y un dispositivo ARM64. No necesitas Android Stu
 - **Archivar y reactivar hábitos:** conserva sus registros y los períodos en que estuvieron activos. Archivar excluye la meta desde ese día; los minutos registrados siguen en los reportes.
 - **Usar el temporizador:** selecciona un hábito y una duración. **Guardar sesión** confirma los minutos; **Terminar y guardar** registra los minutos completos transcurridos. La sesión conserva su fecha de inicio y hora de finalización si cierras o suspendes el equipo.
 
-El selector **Claro/Oscuro** de la cabecera recuerda el tema elegido en cada dispositivo. El icono de la app en Windows y Android utiliza la misma estrella Sparkles que aparece junto a Focus.
+El selector **White/Beige** de la cabecera recuerda el tema elegido en cada dispositivo. White es el tema predeterminado cuando no hay una elección guardada. El icono de la app en Windows y Android utiliza la misma estrella Sparkles que aparece junto a Focus.
 
 La interfaz adapta sus paneles al ancho de la ventana y respeta la preferencia de movimiento reducido. Los cambios de nombre y color también se reflejan en reportes anteriores.
 

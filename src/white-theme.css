@@ -389,3 +389,6 @@
 [data-theme="light"] :is(button, input, select, summary):focus-visible {
   outline-color: #167a80;
 }
+[data-theme="light"] h2.category-report-title {
+  color: var(--light-ink);
+}

@@ -1,8 +1,8 @@
 export type Theme = "dark" | "light";
 export function initializeTheme(): Theme {
-  let theme: Theme = "dark";
+  let theme: Theme = "light";
   try {
-    if (localStorage.getItem("focus-theme") === "light") theme = "light";
+    if (localStorage.getItem("focus-theme") === "dark") theme = "dark";
   } catch {
     /* The selected theme still works for this session. */
   }

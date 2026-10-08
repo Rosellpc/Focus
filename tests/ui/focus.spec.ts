@@ -88,9 +88,7 @@ test("audio propio se conserva, suena al terminar y puede detenerse", async ({
 test("modo claro conserva la preferencia y adapta formularios y movil", async ({
   page,
 }) => {
-  const toggle = page.getByRole("button", { name: "Modo claro", exact: true });
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
-  await toggle.click();
+  const toggle = page.getByRole("button", { name: "Modo White", exact: true });
   await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.locator("body")).toHaveCSS("color", "rgb(52, 69, 78)");

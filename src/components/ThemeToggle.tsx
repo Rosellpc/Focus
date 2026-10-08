@@ -4,16 +4,16 @@ import { applyTheme, type Theme } from "../services/theme";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(() =>
-    document.documentElement.dataset.theme === "light" ? "light" : "dark",
+    document.documentElement.dataset.theme === "dark" ? "dark" : "light",
   );
   const light = theme === "light";
   return (
     <button
       type="button"
       className="theme-toggle"
-      aria-label="Modo claro"
+      aria-label="Modo White"
       aria-pressed={light}
-      title={light ? "Cambiar a modo oscuro" : "Cambiar a modo claro"}
+      title={light ? "Cambiar a modo Beige" : "Cambiar a modo White"}
       onClick={() => {
         const next = light ? "dark" : "light";
         applyTheme(next);

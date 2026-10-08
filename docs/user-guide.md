@@ -10,7 +10,7 @@ El temporizador admite entre 1 y 1440 minutos. **Guardar sesión** confirma el t
 
 ## Tema y sonido
 
-El selector **Claro/Oscuro** recuerda la elección en cada dispositivo. La estrella de la cabecera es también el icono de Windows y Android.
+El selector **White/Beige** recuerda la elección en cada dispositivo. White es el tema predeterminado si no hay una elección guardada. La estrella de la cabecera es también el icono de Windows y Android.
 
 Carga un audio compatible de hasta 50 MB, incluida una canción completa, desde el temporizador. Puedes probarlo, detenerlo o volver al sonido predeterminado. Se guarda en IndexedDB local y se reproduce una vez al terminar con los avisos activados. Los formatos admitidos dependen del dispositivo.
 
