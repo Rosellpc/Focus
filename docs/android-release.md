@@ -1,55 +1,52 @@
-# APK Android de produccion
+# Android: desarrollo y APK de producción
 
-Compilar desde PowerShell en la raiz del proyecto:
+Focus utiliza `com.focus.app`, Android mínimo API 24 (Android 7.0) y APK ARM64. Las actualizaciones se descargan en el navegador y requieren confirmación.
+
+## Entorno local
+
+Instala Android Studio, JBR, Platform-Tools, SDK Platform 37.0, Build-Tools 37.0.0, NDK 30.0.16248370 y Rust estable. En Windows:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-android-release.ps1
+$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
+$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+$env:NDK_HOME = "$env:ANDROID_HOME\ndk\30.0.16248370"
+$env:Path = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:Path"
+rustup target add aarch64-linux-android
+pnpm.cmd install --frozen-lockfile
+pnpm.cmd tauri android dev
 ```
 
-El script reutiliza la firma `focus-release` y genera un APK para dispositivos
-ARM64, incluido el Samsung SM-A528B. Requiere Android Studio, SDK, NDK y el
-destino Rust `aarch64-linux-android`.
+Conecta y desbloquea el teléfono, habilita depuración USB y acepta la autorización. El proyecto está en `src-tauri/gen/android`. El APK de desarrollo usa otra firma y puede depender del servidor local.
 
 ## Firma permanente
 
-La carpeta privada `.android-signing` contiene `focus-release.jks` y
-`password.txt`. Conserva ambos en un respaldo privado fuera del equipo. No
-los publiques ni los envies al chat. La carpeta y `keystore.properties`
-estan excluidos de Git. El script nunca reemplaza una clave existente.
+La carpeta privada `.android-signing` contiene `focus-release.jks` y `password.txt`. Conserva ambos fuera del equipo. El alias es `focus-release`; la huella SHA-256 del certificado esperado es:
 
-Si pierdes la clave o su contraseña, no podras firmar actualizaciones
-compatibles para las instalaciones de este APK. Una copia dentro del mismo
-disco no protege ante una averia del equipo.
+```text
+510614a7c250d94da6d6a82244428bfddcc5d86aaefb945896efaea3c971fb12
+```
 
-## Instalacion inicial desde la version de prueba
+La carpeta y `keystore.properties` están excluidos de Git. No publiques sus contenidos. Si falta la clave, restaura su respaldo antes de compilar. El script puede crear una clave cuando no existe: una clave nueva no sustituye la firma de las instalaciones actuales.
 
-La firma de produccion es diferente de la firma de depuracion. Android no
-permite reemplazar directamente la version de prueba con este APK.
-Antes de desinstalar la version de prueba, respalda y verifica sus datos.
-Desinstalar elimina los datos locales. No ejecutes una desinstalacion hasta
-haber confirmado que el respaldo puede recuperarse.
+## Compilación e instalación local
 
-## Futuras actualizaciones de produccion
+Desde la raíz, con la firma existente:
 
-Mantener `com.focus.app`, usar la misma clave y aumentar la version de
-`src-tauri/tauri.conf.json` (y mantener las versiones del proyecto coherentes).
-Tauri deriva el versionCode Android de esa version. Generar el nuevo APK con
-el script e instalarlo con `adb install -r "ruta-completa.apk"`.
-La misma firma permite actualizar; no instala actualizaciones automaticamente.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-android-release.ps1
+adb install -r '.\src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release.apk'
+```
 
-## Verificacion
+Aunque la carpeta se llame universal, el comando compila ARM64. Usa la ruta al **archivo `.apk`**, no solo su carpeta. Actualiza sin desinstalar.
 
-Verificar el APK con `apksigner verify --verbose --print-certs`, disponible
-en Android SDK Build-Tools. El certificado debe coincidir con el de
-`focus-release.jks`; el APK de produccion no debe ser depurable.
+Android no permite sustituir directamente una firma de depuración por otra de producción. Antes de desinstalar una versión de prueba, respalda y verifica que puedas recuperar los datos. `scripts/backup-android.py` usa `adb run-as` para exportar la instalación de depuración y copiar un JSON a Descargas; no sirve para el APK de producción. Consulta [las limitaciones de respaldos](user-guide.md).
 
-APK verificado el 8 de octubre de 2026:
+## GitHub Actions
 
-- Archivo: `src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
-- Version: 0.1.2; versionCode: 1002; arquitectura: arm64-v8a.
-- Tamano: 8 462 452 bytes; depuracion desactivada.
-- Firma APK v2 verificada con apksigner.
-- SHA-256 certificado: `510614a7c250d94da6d6a82244428bfddcc5d86aaefb945896efaea3c971fb12`
-- SHA-256 APK: `E4C482D8D2F296F6E9D6B196B9EE47CF75FF3DCBB0D59DF9DA63943C3C15B809`
+CI utiliza Java 25, `platforms;android-37.0`, Build-Tools 37.0.0 y NDK 30.0.16248370. setup-android instala `platform-tools` con command-line tools `16111833`; el paquete antiguo `tools` ya no está disponible.
 
-Estos valores corresponden a este APK; el hash del archivo cambiara al recompilar.
+`scripts/configure-android-ci.py` decodifica el Secret, escribe propiedades escapadas para Java y restringe permisos. CI verifica el certificado con apksigner, identificador, versión y ausencia de depuración; genera checksums y elimina archivos temporales.
+
+El release 0.1.4 publica `Focus_0.1.4_arm64.apk` y `ANDROID-SHA256SUMS.txt`. El versionCode derivado es 1004. El hash del APK cambia por versión: compara con el checksum de su release.
+
+La app consulta el último release estable de Rosellpc/Focus y acepta solo la URL esperada del APK para esa versión. Android verifica la firma al instalar. No hay instalación silenciosa. Consulta [publicación](releasing.md) y [la prueba desde 0.1.3](releases/v0.1.4.md).
